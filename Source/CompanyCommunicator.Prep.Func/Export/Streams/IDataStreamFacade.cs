@@ -26,5 +26,12 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.Export.Streams
         /// <param name="notificationId">the notification id.</param>
         /// <returns>the streams of team data.</returns>
         IAsyncEnumerable<IEnumerable<TeamData>> GetTeamDataStreamAsync(string notificationId);
+
+        /// <summary>
+        /// get the reaction data streams.
+        /// </summary>
+        /// <param name="notificationId">the notification id.</param>
+        /// <returns>the streams of reaction data.</returns>
+        IAsyncEnumerable<IEnumerable<ReactionData>> GetReactionDataStreamAsync(string notificationId);
     }
 }

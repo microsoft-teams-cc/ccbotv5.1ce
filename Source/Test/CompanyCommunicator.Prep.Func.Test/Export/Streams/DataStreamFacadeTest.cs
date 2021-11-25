@@ -13,6 +13,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.Test.Export.Streams
     using FluentAssertions;
     using Microsoft.Extensions.Localization;
     using Microsoft.Graph;
+    using Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.ReactionData;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.SentNotificationData;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.TeamData;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.UserData;
@@ -30,6 +31,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.Test.Export.Streams
     /// </summary>
     public class DataStreamFacadeTest
     {
+        private readonly Mock<IReactionDataRepository> reactionDataRepository = new Mock<IReactionDataRepository>();    
         private readonly Mock<ISentNotificationDataRepository> sentNotificationDataRepository = new Mock<ISentNotificationDataRepository>();
         private readonly Mock<ITeamDataRepository> teamDataRepository = new Mock<ITeamDataRepository>();
         private readonly Mock<IUserDataRepository> userDataRepository = new Mock<IUserDataRepository>();
@@ -80,7 +82,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.Test.Export.Streams
         public void DataStreamFacadeInstanceCreation_AllParameters_ShouldBeSuccess()
         {
             // Arrange
-            Action action = () => new DataStreamFacade(this.sentNotificationDataRepository.Object, this.teamDataRepository.Object, this.userDataRepository.Object, this.userTypeService.Object, this.usersService.Object, this.localizer.Object);
+            Action action = () => new DataStreamFacade(this.reactionDataRepository.Object, this.sentNotificationDataRepository.Object, this.teamDataRepository.Object, this.userDataRepository.Object, this.userTypeService.Object, this.usersService.Object, this.localizer.Object);
 
             // Act and Assert.
             action.Should().NotThrow();
@@ -93,12 +95,13 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.Test.Export.Streams
         public void CreateInstance_NullParamters_ThrowsArgumentNullException()
         {
             // Arrange
-            Action action1 = () => new DataStreamFacade(null /*sentNotificationDataRepository*/, this.teamDataRepository.Object, this.userDataRepository.Object, this.userTypeService.Object, this.usersService.Object, this.localizer.Object);
-            Action action2 = () => new DataStreamFacade(this.sentNotificationDataRepository.Object, null /*teamDataRepository*/, this.userDataRepository.Object, this.userTypeService.Object, this.usersService.Object, this.localizer.Object);
-            Action action3 = () => new DataStreamFacade(this.sentNotificationDataRepository.Object, this.teamDataRepository.Object, this.userDataRepository.Object, this.userTypeService.Object, null /*usersService*/, this.localizer.Object);
-            Action action4 = () => new DataStreamFacade(this.sentNotificationDataRepository.Object, this.teamDataRepository.Object, this.userDataRepository.Object, this.userTypeService.Object, this.usersService.Object, null /*localizer*/);
-            Action action5 = () => new DataStreamFacade(this.sentNotificationDataRepository.Object, this.teamDataRepository.Object, null /*userDataRepository*/, this.userTypeService.Object, this.usersService.Object, this.localizer.Object);
-            Action action6 = () => new DataStreamFacade(this.sentNotificationDataRepository.Object, this.teamDataRepository.Object, this.userDataRepository.Object, null /*userTypeService*/, this.usersService.Object, this.localizer.Object);
+            Action action0 = () => new DataStreamFacade(null /*reactionDataRepository*/, this.sentNotificationDataRepository.Object, this.teamDataRepository.Object, this.userDataRepository.Object, this.userTypeService.Object, this.usersService.Object, this.localizer.Object);
+            Action action1 = () => new DataStreamFacade(this.reactionDataRepository.Object, null /*sentNotificationDataRepository*/, this.teamDataRepository.Object, this.userDataRepository.Object, this.userTypeService.Object, this.usersService.Object, this.localizer.Object);
+            Action action2 = () => new DataStreamFacade(this.reactionDataRepository.Object, this.sentNotificationDataRepository.Object, null /*teamDataRepository*/, this.userDataRepository.Object, this.userTypeService.Object, this.usersService.Object, this.localizer.Object);
+            Action action3 = () => new DataStreamFacade(this.reactionDataRepository.Object, this.sentNotificationDataRepository.Object, this.teamDataRepository.Object, this.userDataRepository.Object, this.userTypeService.Object, null /*usersService*/, this.localizer.Object);
+            Action action4 = () => new DataStreamFacade(this.reactionDataRepository.Object, this.sentNotificationDataRepository.Object, this.teamDataRepository.Object, this.userDataRepository.Object, this.userTypeService.Object, this.usersService.Object, null /*localizer*/);
+            Action action5 = () => new DataStreamFacade(this.reactionDataRepository.Object, this.sentNotificationDataRepository.Object, this.teamDataRepository.Object, null /*userDataRepository*/, this.userTypeService.Object, this.usersService.Object, this.localizer.Object);
+            Action action6 = () => new DataStreamFacade(this.reactionDataRepository.Object, this.sentNotificationDataRepository.Object, this.teamDataRepository.Object, this.userDataRepository.Object, null /*userTypeService*/, this.usersService.Object, this.localizer.Object);
 
             // Act and Assert.
             action1.Should().Throw<ArgumentNullException>("sentNotificationDataRepository is null.");

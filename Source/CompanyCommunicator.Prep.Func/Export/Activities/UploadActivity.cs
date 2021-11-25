@@ -125,6 +125,37 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.Export.Activities
                         }
                     }
                 }
+
+                try
+                {
+                    // message reaction csv creation.
+                    var messageReactionFileName = "Message_Reaction.csv";
+                    var messageReactionFile = archive.CreateEntry(messageReactionFileName, CompressionLevel.Optimal);
+                    using (var entryStream = messageReactionFile.Open())
+                    {
+                        using (var writer = new StreamWriter(entryStream, System.Text.Encoding.UTF8))
+                        using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                        {
+                            var reactiondataMap = new ReactionDataMap();
+                            csv.Configuration.RegisterClassMap(reactiondataMap);
+                            var reactionDataStream = this.userDataStream.GetReactionDataStreamAsync(uploadData.sentNotificationDataEntity.Id);
+                            if (reactionDataStream != null)
+                            {
+                                await foreach (var data in reactionDataStream)
+                                {
+                                    await csv.WriteRecordsAsync(data);
+                                }
+                            }
+                            else
+                            {
+                                return;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                }
             }
 
             memorystream.Position = 0;

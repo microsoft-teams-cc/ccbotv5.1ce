@@ -93,6 +93,11 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.SentNotif
         public string RecipientType { get; set; }
 
         /// <summary>
+        /// Gets or sets the message's unique identifier.
+        /// </summary>
+        public string MessageId { get; set; }
+
+        /// <summary>
         /// Gets or sets the recipient's unique identifier.
         ///     If the recipient is a user, this should be the AAD Id.
         ///     If the recipient is a team, this should be the team Id.

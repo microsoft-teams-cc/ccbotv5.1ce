@@ -13,6 +13,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.Export.Streams
     using Microsoft.Extensions.Localization;
     using Microsoft.Graph;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Extensions;
+    using Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.ReactionData;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.SentNotificationData;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.TeamData;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.UserData;
@@ -27,6 +28,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.Export.Streams
     /// </summary>
     public class DataStreamFacade : IDataStreamFacade
     {
+        private readonly IReactionDataRepository reactionDataRepository;     
         private readonly ISentNotificationDataRepository sentNotificationDataRepository;
         private readonly ITeamDataRepository teamDataRepository;
         private readonly IUserDataRepository userDataRepository;
@@ -40,10 +42,12 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.Export.Streams
         /// <param name="sentNotificationDataRepository">the sent notification data repository.</param>
         /// <param name="teamDataRepository">the team data repository.</param>
         /// <param name="userDataRepository">the user data repository.</param>
+        /// <param name="reactionDataRepository">the reaction data repository.</param>
         /// <param name="userTypeService">the user type service.</param>
         /// <param name="usersService">the users service.</param>
         /// <param name="localizer">Localization service.</param>
         public DataStreamFacade(
+            IReactionDataRepository reactionDataRepository,    
             ISentNotificationDataRepository sentNotificationDataRepository,
             ITeamDataRepository teamDataRepository,
             IUserDataRepository userDataRepository,
@@ -51,6 +55,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.Export.Streams
             IUsersService usersService,
             IStringLocalizer<Strings> localizer)
         {
+            this.reactionDataRepository = reactionDataRepository ?? throw new ArgumentNullException(nameof(reactionDataRepository));
             this.sentNotificationDataRepository = sentNotificationDataRepository ?? throw new ArgumentNullException(nameof(sentNotificationDataRepository));
             this.teamDataRepository = teamDataRepository ?? throw new ArgumentNullException(nameof(teamDataRepository));
             this.userDataRepository = userDataRepository ?? throw new ArgumentNullException(nameof(userDataRepository));
@@ -145,6 +150,46 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.Export.Streams
                 }
 
                 yield return teamDataList;
+            }
+        }
+
+        /// <summary>
+        /// get the reaction data streams.
+        /// </summary>
+        /// <param name="notificationId">the notification id.</param>
+        /// <returns>the streams of reaction data.</returns>
+        public async IAsyncEnumerable<IEnumerable<ReactionData>> GetReactionDataStreamAsync(string notificationId)
+        {
+            if (notificationId == null)
+            {
+                throw new ArgumentNullException(nameof(notificationId));
+            }
+
+            var sentNotificationDataEntitiesStream = this.sentNotificationDataRepository.GetStreamsAsync(notificationId);
+            await foreach (var sentNotificationDataEntities in sentNotificationDataEntitiesStream)
+            {
+                var reactionDataList = new List<ReactionData>();
+                foreach (var sentNotificationDataEntity in sentNotificationDataEntities)
+                {
+                    var reactionDataEntitiesStream = this.reactionDataRepository.GetStreamsAsync(sentNotificationDataEntity.MessageId);
+                    await foreach (var reactionDataEntities in reactionDataEntitiesStream)
+                    {
+                        foreach (var reactionDataEntity in reactionDataEntities)
+                        {
+                            var upn2 = (await this.usersService.GetUserAsync(reactionDataEntity.Name))?.UserPrincipalName;
+                            var reactionData = new ReactionData
+                            {
+                                Id = reactionDataEntity.ReactionId,
+                                Name = upn2,
+                                Reaction = reactionDataEntity.Reaction,
+                                ConversationId = reactionDataEntity.ConversationID,
+                            };
+                            reactionDataList.Add(reactionData);
+                        }
+                    }
+                }
+
+                yield return reactionDataList;
             }
         }
 
